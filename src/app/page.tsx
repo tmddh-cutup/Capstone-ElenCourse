@@ -4,7 +4,8 @@ import { useState } from "react";
 import { SocraticDialogue } from "@/components/SocraticDialogue";
 import { MathProblemPane } from "@/components/MathProblemPane";
 import { Progress } from "@/components/ui/progress";
-import { User, BookOpen } from "lucide-react";
+import { User, BookOpen, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProblemBank } from "@/components/ProblemBank";
@@ -12,7 +13,7 @@ import { MOCK_PROBLEMS, type Problem } from "@/lib/mockProblems";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-const studentInfo = {
+const DEFAULT_STUDENT_INFO = {
   name: "김엘렌",
   gender: "여성",
   school: "엘렌고등학교",
@@ -34,6 +35,11 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const [currentProblem, setCurrentProblem] = useState<Problem>(MOCK_PROBLEMS[0]);
   const [activeTab, setActiveTab] = useState("workspace");
+  const [studentInfo, setStudentInfo] = useState(DEFAULT_STUDENT_INFO);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [solvedCount, setSolvedCount] = useState(() => MOCK_PROBLEMS.filter(p => p.status === "solved").length);
+  const [learningCount, setLearningCount] = useState(() => MOCK_PROBLEMS.filter(p => p.status === "learning").length);
+  const [unsolvedCount, setUnsolvedCount] = useState(() => MOCK_PROBLEMS.filter(p => p.status === "unsolved").length);
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50/50">
@@ -60,35 +66,86 @@ export default function Home() {
               <div className="bg-slate-200 p-1 rounded-full"><User className="w-4 h-4 text-slate-600" /></div>
               <span>{studentInfo.name}</span>
             </PopoverTrigger>
-            <PopoverContent className="w-56 p-4 rounded-xl shadow-lg border-slate-100 mr-4" align="end">
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3 border-b pb-3">
-                  <div className="bg-primary/10 p-2 rounded-full hidden sm:block">
-                    <User className="w-6 h-6 text-primary" />
+            <PopoverContent className="w-64 p-4 rounded-xl shadow-lg border-slate-100 mr-4" align="end">
+              {isEditingProfile ? (
+                <div className="flex flex-col gap-3">
+                  <h4 className="font-bold text-slate-800 tracking-tight mb-1">프로필 수정</h4>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-slate-500">이름</label>
+                    <input type="text" value={studentInfo.name} onChange={(e) => setStudentInfo({...studentInfo, name: e.target.value})} className="border rounded-md px-2 py-1 text-sm outline-none focus:border-primary" />
                   </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 tracking-tight">{studentInfo.name}</h4>
-                    <p className="text-[11px] text-slate-500">{studentInfo.school}</p>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-slate-500">학교</label>
+                    <input type="text" value={studentInfo.school} onChange={(e) => setStudentInfo({...studentInfo, school: e.target.value})} className="border rounded-md px-2 py-1 text-sm outline-none focus:border-primary" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-slate-500">성별</label>
+                      <select value={studentInfo.gender} onChange={(e) => setStudentInfo({...studentInfo, gender: e.target.value})} className="border rounded-md px-2 py-1 text-sm outline-none focus:border-primary bg-white">
+                        <option value="여성">여성</option>
+                        <option value="남성">남성</option>
+                        <option value="선택안함">선택안함</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-slate-500">출생연도</label>
+                      <input type="number" value={studentInfo.birthYear} onChange={(e) => setStudentInfo({...studentInfo, birthYear: parseInt(e.target.value) || 2010})} className="border rounded-md px-2 py-1 text-sm outline-none focus:border-primary" />
+                    </div>
+                  </div>
+                  <Button onClick={() => setIsEditingProfile(false)} className="mt-2 w-full h-8 text-xs">저장</Button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between border-b pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-primary/10 p-2 rounded-full hidden sm:block">
+                        <User className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 tracking-tight">{studentInfo.name}</h4>
+                        <p className="text-[11px] text-slate-500">{studentInfo.school}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setIsEditingProfile(true)} className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 transition-colors" title="프로필 수정">
+                      <Settings className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-xs">
+                    <div className="flex flex-col">
+                      <span className="text-slate-400 font-medium">성별</span>
+                      <span className="font-semibold text-slate-700">{studentInfo.gender}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-slate-400 font-medium">출생</span>
+                      <span className="font-semibold text-slate-700">{studentInfo.birthYear}년생</span>
+                    </div>
+                    <div className="flex flex-col col-span-2 mt-1">
+                      <span className="text-slate-400 font-medium mb-1">현재 학년</span>
+                      <span className="font-semibold text-primary bg-primary/10 px-2 py-1 rounded w-fit">
+                        {getGrade(studentInfo.birthYear)} ({CURRENT_YEAR}년 기준)
+                      </span>
+                    </div>
+                    <div className="flex flex-col col-span-2 mt-1 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                      <span className="text-slate-400 font-medium mb-2">학습 현황</span>
+                      <div className="grid grid-cols-3 gap-2 text-center divide-x divide-slate-200">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-700">{solvedCount}</span>
+                          <span className="text-[10px] text-slate-500">완료</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-700">{learningCount}</span>
+                          <span className="text-[10px] text-slate-500">학습 중</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-700">{unsolvedCount}</span>
+                          <span className="text-[10px] text-slate-500">미해결</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-xs">
-                  <div className="flex flex-col">
-                    <span className="text-slate-400 font-medium">성별</span>
-                    <span className="font-semibold text-slate-700">{studentInfo.gender}</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-slate-400 font-medium">출생</span>
-                    <span className="font-semibold text-slate-700">{studentInfo.birthYear}년생</span>
-                  </div>
-                  <div className="flex flex-col col-span-2 mt-1">
-                    <span className="text-slate-400 font-medium mb-1">현재 학년</span>
-                    <span className="font-semibold text-primary bg-primary/10 px-2 py-1 rounded w-fit">
-                      {getGrade(studentInfo.birthYear)} ({CURRENT_YEAR}년 기준)
-                    </span>
-                  </div>
-                </div>
-              </div>
+              )}
             </PopoverContent>
           </Popover>
         </div>

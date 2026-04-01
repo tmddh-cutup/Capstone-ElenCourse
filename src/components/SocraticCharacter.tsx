@@ -5,16 +5,23 @@ import { motion } from "framer-motion";
 export function SocraticCharacter() {
   return (
     <div
-      className="w-12 h-12 bg-primary/10 text-primary border-2 border-primary/20 rounded-full flex items-center justify-center shrink-0"
+      className="w-16 h-16 bg-white border-[3px] border-primary/20 rounded-full flex items-center justify-center shrink-0 overflow-hidden shadow-md"
     >
-      {/* TODO: Add minimalist Greek philosopher Logo inside here */}
-      <motion.span
-        className="font-semibold text-sm"
-        animate={{ y: [0, -4, 0] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      >
-        Philos
-      </motion.span>
+      <motion.img
+        src="/philos.png"
+        alt="Philos Avatar"
+        className="w-[130%] h-[130%] max-w-none object-cover mt-2 origin-bottom"
+        animate={{ 
+          y: [0, -2, 0],
+          rotate: [-1, 1.5, -1],
+          scale: [1, 1.02, 1] 
+        }}
+        transition={{ 
+          duration: 4, 
+          repeat: Infinity, 
+          ease: "easeInOut" 
+        }}
+      />
     </div>
   );
 }
