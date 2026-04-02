@@ -8,6 +8,7 @@ import { TikzRenderer } from "./TikzRenderer";
 import { LatexProblemRenderer } from "./LatexProblemRenderer";
 import { ProblemViewer } from "./ProblemViewer";
 import type { ServerProblem } from "@/lib/serverProblem";
+import { useLanguage } from "@/components/LanguageProvider";
 import "katex/dist/katex.min.css";
 
 type MathProblemPaneProps = {
@@ -18,6 +19,7 @@ type MathProblemPaneProps = {
 };
 
 export function MathProblemPane({ problemString, tikzString, latexString, serverProblem }: MathProblemPaneProps) {
+  const { t } = useLanguage();
   const [mathString, setMathString] = useState(problemString);
   const [currentTikz, setCurrentTikz] = useState(tikzString);
   const [currentLatex, setCurrentLatex] = useState(latexString);
@@ -124,7 +126,7 @@ export function MathProblemPane({ problemString, tikzString, latexString, server
         <div className="absolute inset-0 z-50 rounded-2xl bg-white/50 backdrop-blur-sm flex items-center justify-center pointer-events-none">
           <div className="bg-white px-8 py-6 rounded-2xl shadow-xl flex flex-col items-center gap-4 text-primary border border-primary/20">
             <Camera className="w-12 h-12 animate-bounce" />
-            <p className="font-bold text-lg tracking-tight">Drop image to upload</p>
+            <p className="font-bold text-lg tracking-tight">{t("math.dropImage")}</p>
           </div>
         </div>
       )}
@@ -134,7 +136,7 @@ export function MathProblemPane({ problemString, tikzString, latexString, server
       
       <div className="flex w-full justify-between items-center mb-4 z-10 flex-shrink-0">
         <h2 className="text-base font-semibold text-slate-500 tracking-wide">
-          Current Problem
+          {t("math.currentProblem")}
         </h2>
         
         {/* Actions Menu */}
@@ -149,7 +151,7 @@ export function MathProblemPane({ problemString, tikzString, latexString, server
                 className="text-slate-600 bg-white"
               >
                 {isUploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Camera className="w-4 h-4 mr-2" />}
-                {isUploading ? "Scanning..." : "Upload Photo"}
+                {isUploading ? t("math.scanning") : t("math.uploadPhoto")}
               </Button>
               <Button 
                 variant="outline" 
@@ -181,11 +183,11 @@ export function MathProblemPane({ problemString, tikzString, latexString, server
         {isUploading ? (
           <div className="flex flex-col items-center text-slate-400 font-sans text-base">
             <Loader2 className="w-8 h-8 animate-spin mb-3 text-primary" />
-            <p>Analyzing problem image...</p>
+            <p>{t("math.analyzing")}</p>
           </div>
         ) : isEditing ? (
           <div className="w-full flex flex-col font-sans text-left">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Math Formula (LaTeX)</label>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("math.labelMath")}</label>
             <textarea
               className="w-full p-3 border rounded-lg text-lg min-h-[80px] outline-none focus:ring-2 focus:ring-primary/50 text-slate-700 font-mono mb-4"
               value={editMathValue}
@@ -195,7 +197,7 @@ export function MathProblemPane({ problemString, tikzString, latexString, server
             
             {currentTikz !== undefined && (
               <>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">TikZ Graph Variables & Code</label>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">{t("math.labelTikz")}</label>
                 <textarea
                   className="w-full p-4 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/50 text-slate-700 font-mono bg-slate-50/50"
                   style={{ minHeight: "220px" }}
@@ -209,7 +211,7 @@ export function MathProblemPane({ problemString, tikzString, latexString, server
 
             {currentLatex !== undefined && (
               <>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">LaTeX Problem Code</label>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">{t("math.labelLatex")}</label>
                 <textarea
                   className="w-full p-4 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/50 text-slate-700 font-mono bg-slate-50/50"
                   style={{ minHeight: "280px" }}
@@ -223,10 +225,10 @@ export function MathProblemPane({ problemString, tikzString, latexString, server
 
             <div className="flex justify-end gap-3 mt-5">
               <Button variant="ghost" size="sm" onClick={cancelEdit} className="text-slate-500 hover:bg-slate-100">
-                <X className="w-4 h-4 mr-1" /> Cancel
+                <X className="w-4 h-4 mr-1" /> {t("math.cancel")}
               </Button>
               <Button variant="default" size="sm" onClick={saveEdit} className="shadow-md">
-                <Check className="w-4 h-4 mr-1" /> Render Changes
+                <Check className="w-4 h-4 mr-1" /> {t("math.render")}
               </Button>
             </div>
           </div>

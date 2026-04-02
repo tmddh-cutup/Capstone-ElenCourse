@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Lightbulb, Image as ImageIcon, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/components/LanguageProvider";
 import "katex/dist/katex.min.css";
 import { InlineMath } from "react-katex";
 
@@ -15,6 +16,7 @@ type Message = {
   role: "tutor" | "user";
   content: string;
   image?: string;
+  isHint?: boolean;
 };
 
 type SocraticDialogueProps = {
@@ -24,8 +26,9 @@ type SocraticDialogueProps = {
 };
 
 export function SocraticDialogue({ onProgress, logicSteps, hints }: SocraticDialogueProps) {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
-    { id: "1", role: "tutor", content: logicSteps[0] || "Let's solve this problem." },
+    { id: "1", role: "tutor", content: logicSteps[0] || t("dialogue.letSolve") },
   ]);
   const [input, setInput] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -39,14 +42,14 @@ export function SocraticDialogue({ onProgress, logicSteps, hints }: SocraticDial
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  // Reset dialogue state if a new problem is selected
+  // Reset dialogue state if a new problem is selected or language changes
   useEffect(() => {
     setStep(0);
-    setMessages([{ id: Date.now().toString(), role: "tutor", content: logicSteps[0] || "Let's solve this problem." }]);
+    setMessages([{ id: Date.now().toString(), role: "tutor", content: logicSteps[0] || t("dialogue.letSolve") }]);
     setIsTyping(false);
     setInput("");
     setSelectedImage(null);
-  }, [logicSteps]);
+  }, [logicSteps, t]);
 
   // Report progress based on logical steps
   useEffect(() => {
@@ -90,7 +93,7 @@ export function SocraticDialogue({ onProgress, logicSteps, hints }: SocraticDial
         id: (Date.now() + 1).toString(),
         role: "tutor",
         content: nextStep === step 
-          ? "You've already finished this problem! Want to try another?" 
+          ? t("dialogue.alreadyFinished")
           : logicSteps[nextStep],
       };
       
@@ -101,7 +104,12 @@ export function SocraticDialogue({ onProgress, logicSteps, hints }: SocraticDial
   const requestHint = () => {
     setMessages((prev) => [
       ...prev,
-      { id: Date.now().toString(), role: "tutor", content: `💡 Hint: ${hints[step] || "No more hints available."}` }
+      { 
+        id: Date.now().toString(), 
+        role: "tutor", 
+        content: `${t("dialogue.hint")} ${hints[step] || t("dialogue.noHint")}`,
+        isHint: true 
+      }
     ]);
   };
 
@@ -131,12 +139,14 @@ export function SocraticDialogue({ onProgress, logicSteps, hints }: SocraticDial
                   msg.role === "user" ? "ml-auto flex-row-reverse" : ""
                 }`}
               >
-                {msg.role === "tutor" && <SocraticCharacter />}
+                {msg.role === "tutor" && <SocraticCharacter type={msg.isHint ? "crow" : "philos"} />}
                 <div
                   className={`p-4 rounded-2xl text-[15px] leading-relaxed flex flex-col gap-2 ${
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground rounded-tr-sm"
-                      : "bg-muted/50 text-foreground rounded-tl-sm border"
+                      : msg.isHint
+                        ? "bg-amber-50 text-amber-900 border-amber-200 rounded-tl-sm border"
+                        : "bg-muted/50 text-foreground rounded-tl-sm border"
                   }`}
                 >
                   {msg.image && (
@@ -186,7 +196,7 @@ export function SocraticDialogue({ onProgress, logicSteps, hints }: SocraticDial
             size="icon"
             onClick={requestHint}
             className="shrink-0 text-amber-500 hover:text-amber-600 hover:bg-amber-50 border-amber-200"
-            title="Get a Hint"
+            title={t("dialogue.tooltipHint")}
           >
             <Lightbulb className="w-5 h-5" />
           </Button>
@@ -195,7 +205,7 @@ export function SocraticDialogue({ onProgress, logicSteps, hints }: SocraticDial
             size="icon"
             onClick={() => fileInputRef.current?.click()}
             className="shrink-0 text-slate-500 hover:text-primary hover:bg-primary/5 border-slate-200"
-            title="Upload Image"
+            title={t("dialogue.tooltipUpload")}
           >
             <ImageIcon className="w-5 h-5" />
           </Button>
@@ -212,7 +222,7 @@ export function SocraticDialogue({ onProgress, logicSteps, hints }: SocraticDial
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder={selectedImage ? "Add an optional message..." : "Type your response..."}
+              placeholder={selectedImage ? t("dialogue.placeholderOpt") : t("dialogue.placeholder")}
               className="w-full pl-4 pr-12 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-[15px]"
             />
             <Button
