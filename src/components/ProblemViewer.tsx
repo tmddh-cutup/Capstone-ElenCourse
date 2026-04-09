@@ -14,8 +14,11 @@ function buildMathHtml(problem: ServerProblem): string {
   const { source, points } = problem.problem_info;
 
   // Build numbered choices as ① ② ③ ④ ⑤
-  const circledNums = ["①", "②", "③", "④", "⑤"];
-  const choicesHtml = choices
+  const circledNums = [
+  "①","②","③","④","⑤",
+  "⑥","⑦","⑧","⑨","⑩"
+];
+  const choicesHtml = (choices ?? [])
     .map((c, i) => `<span class="choice">${circledNums[i]} \\(${c}\\)</span>`)
     .join("&emsp;");
 
@@ -176,7 +179,7 @@ export function ProblemViewer({ problem }: ProblemViewerProps) {
       </div>
 
       {/* TikZ visualization */}
-      {viz?.engine === "tikz" && (
+      {viz?.engine === "tikz" && typeof viz.code === "string" && (
         <TikzGraph code={viz.code} caption={viz.caption} />
       )}
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SocraticDialogue } from "@/components/SocraticDialogue";
 import { MathProblemPane } from "@/components/MathProblemPane";
 import { Progress } from "@/components/ui/progress";
@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProblemBank } from "@/components/ProblemBank";
 import { MOCK_PROBLEMS, type Problem } from "@/lib/mockProblems";
 import { useLanguage } from "@/components/LanguageProvider";
+import type { TutorProblemPayload } from "@/lib/schema";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -44,6 +45,43 @@ export default function Home() {
   const [learningCount, setLearningCount] = useState(() => MOCK_PROBLEMS.filter(p => p.status === "learning").length);
   const [unsolvedCount, setUnsolvedCount] = useState(() => MOCK_PROBLEMS.filter(p => p.status === "unsolved").length);
 
+  const [tutorLogicSteps, setTutorLogicSteps] = useState(currentProblem.logicSteps);
+  const [tutorHints, setTutorHints] = useState(currentProblem.hints);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  
+  useEffect(() => {
+  setTutorLogicSteps(currentProblem.logicSteps);
+  setTutorHints(currentProblem.hints);
+  }, [currentProblem]);
+
+  const loadAiProblem = async () => {
+  try {
+    setIsAiLoading(true);
+
+    const res = await fetch("/api/parse-problem");
+    if (!res.ok) {
+      throw new Error("Failed to fetch parsed problem");
+    }
+
+    const payload: TutorProblemPayload = await res.json();
+
+    setCurrentProblem((prev) => ({
+      ...prev,
+      serverProblem: payload.viewer,
+      mathString: payload.viewer.problem_statement.main_text,
+    }));
+
+    setTutorLogicSteps(payload.tutoring_assets.logic_steps);
+    setTutorHints(payload.tutoring_assets.hints);
+    setActiveTab("workspace");
+    setProgress(0);
+  } catch (error) {
+    console.error(error);
+    alert("AI 문제를 불러오지 못했습니다.");
+  } finally {
+    setIsAiLoading(false);
+  }
+  };
   return (
     <div className="flex flex-col min-h-screen bg-slate-50/50">
       {/* Sticky Header */}
@@ -183,10 +221,17 @@ export default function Home() {
             <h2 className="text-xl font-bold tracking-tight text-slate-800">
               {activeTab === "workspace" ? t("app.learningWorkspace") : t("app.problemBank")}
             </h2>
+            
+            <div className="flex items-center gap-3">
+            <Button onClick={loadAiProblem} disabled={isAiLoading}>
+              {isAiLoading ? "AI 불러오는 중..." : "AI Mock 문제 불러오기"}
+            </Button>
+
             <TabsList className="bg-slate-200/50 p-1">
               <TabsTrigger value="workspace">{t("app.tabWorkspace")}</TabsTrigger>
               <TabsTrigger value="bank">{t("app.tabBank")}</TabsTrigger>
             </TabsList>
+            </div>
           </div>
 
           <TabsContent value="workspace" className="flex-1 mt-0 outline-none grid lg:grid-cols-2 gap-6 items-stretch">
